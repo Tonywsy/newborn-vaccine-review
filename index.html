@@ -41,6 +41,17 @@
   .callout { font-size:13px; background:#fff8ef; border:1px solid #f5e2c3; border-radius:10px; padding:12px 14px; margin-top:14px; }
   .warn { background:#fdf3e7; border-color:#f0d5a8; }
   .info-note { font-size:12px; color:#999; margin-top:6px; }
+  /* 月龄 tab */
+  .tabs { display:flex; gap:8px; overflow-x:auto; padding:4px 2px 12px; -webkit-overflow-scrolling:touch; }
+  .tab-btn { flex:0 0 auto; padding:7px 14px; border-radius:18px; border:1px solid #ddd; background:#fff; font-size:13px; cursor:pointer; white-space:nowrap; color:#444; }
+  .tab-btn.on { background:#1E5AA8; color:#fff; border-color:#1E5AA8; font-weight:700; }
+  .tab-btn .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#C0392B; margin-left:5px; vertical-align:2px; }
+  .tl-block h4 { font-size:13px; margin:12px 0 4px; }
+  .tl-free-t { color:#1E5AA8; } .tl-paid-t { color:#B26A00; }
+  .tl-chip { display:inline-block; font-size:13px; padding:4px 12px; border-radius:8px; margin:3px 6px 3px 0; }
+  .chip-free { background:#e8f0fb; color:#1E5AA8; } .chip-paid { background:#fdf3e7; color:#B26A00; }
+  .tl-none { font-size:13px; color:#aaa; }
+  .tl-note { font-size:13px; color:#555; background:#f0f4fa; border-radius:8px; padding:9px 12px; margin-top:12px; }
 </style>
 </head>
 <body>
@@ -55,6 +66,14 @@
     <h2>三套接种方案对比</h2>
     <p class="section-desc">国家免费疫苗（免疫规划）覆盖 11 种传染病、共 22 剂次，这是底线；自费疫苗补的是「高发病、重症率高」的缺口。三套方案按预算和需求分级，0-6 岁全程费用（参考价）。</p>
     <div class="cards" id="cards"></div>
+  </div>
+
+  <!-- 按月龄查疫苗 -->
+  <div class="section">
+    <h2>按月龄查疫苗：这个月该打什么</h2>
+    <p class="section-desc">点月龄切换 · <span style="color:#1E5AA8">蓝=国家免费（必打）</span> · <span style="color:#B26A00">橙=建议自费</span> · 带红点的月份有「抢时间」的自费苗。免疫程序按国家 2026 年版，各地门诊安排可能微调。</p>
+    <div class="tabs" id="tlTabs"></div>
+    <div id="tlBody" class="tl-block"></div>
   </div>
 
   <!-- 雷达图 -->
@@ -132,6 +151,77 @@ document.getElementById('cards').innerHTML = plans.map(p=>`
     <div class="unit">${p.spec}</div>
     <ul>${Object.entries(p.rows).slice(0,3).map(([k,v])=>`<li><span>${k}</span><b>${v}</b></li>`).join('')}</ul>
   </div>`).join('');
+
+// ===== 按月龄查疫苗 tab =====
+const timeline = [
+  { age:"出生24h", hot:false,
+    free:["乙肝疫苗 ①","卡介苗"], paid:[],
+    note:"出生 24 小时内接种。早产/低体重（<2.5kg）宝宝乙肝①仍按期打，卡介苗待体重达标后补种。" },
+  { age:"1月龄", hot:false,
+    free:["乙肝疫苗 ②"], paid:[],
+    note:"可与满月体检同一天，少跑一趟。" },
+  { age:"2月龄", hot:true,
+    free:["脊灰 IPV ①","百白破 ①"],
+    paid:["五价轮状 首剂（口服）","13价肺炎 ①","五联 ①（替百白破+脊灰+Hib）"],
+    note:"⏰ 轮状首剂窗口 6-12 周龄、全程 3 剂 32 周龄前——出生后第一次去接种门诊就要问它，错过无法补种。选五联的宝宝本月起五联替代免费脊灰/百白破。" },
+  { age:"3月龄", hot:false,
+    free:["脊灰 IPV ②"],
+    paid:["五联 ②","五价轮状 ②（若已开针）"],
+    note:"免费针本月只有一剂脊灰；打五联的宝宝本月五联②。" },
+  { age:"4月龄", hot:false,
+    free:["脊灰 bOPV ③（口服）","百白破 ②"],
+    paid:["五联 ③","13价肺炎 ②","五价轮状 ③"],
+    note:"轮状全程须在 32 周龄（约 7 个半月）前完成，本月收尾。" },
+  { age:"6月龄", hot:false,
+    free:["乙肝疫苗 ③","百白破 ③","A群流脑 ①"],
+    paid:["13价肺炎 ③","流感疫苗 首季第 1 剂","手足口 EV71 ①"],
+    note:"满 6 月龄后的首个秋冬流感季即可打流感，首年 2 剂间隔 ≥4 周；EV71 两剂间隔 1 个月，入园前完成。" },
+  { age:"8月龄", hot:false,
+    free:["麻腮风 ①","乙脑减毒 ①"], paid:[],
+    note:"两针可同天。麻腮风接种后 5-12 天可能出现一过性发热/稀疏皮疹，属正常疫苗反应，别慌。" },
+  { age:"9月龄", hot:false,
+    free:["A群流脑 ②"], paid:[],
+    note:"与 A 群流脑 ① 至少间隔 3 个月。" },
+  { age:"12-15月龄", hot:true,
+    free:[],
+    paid:["13价肺炎 加强剂（进口限 15 月龄内！）","水痘 ①","手足口 EV71 收尾"],
+    note:"进口沛儿13 全程须在 15 月龄内完成，本月是加强剂窗口；国产 13 价已扩龄至 6 岁前（2-5 岁仅 1 剂），错过不焦虑。" },
+  { age:"18月龄", hot:false,
+    free:["百白破 ④","麻腮风 ②","甲肝"],
+    paid:["五联 ④（选五联方案者）"],
+    note:"「针头密集月」：一次门诊可安排多针，提前和接种点约好时间。" },
+  { age:"2岁", hot:false,
+    free:["乙脑减毒 ②"], paid:[],
+    note:"乙脑第 2 剂，与 8 月龄首剂间隔 1 年以上。" },
+  { age:"3岁", hot:false,
+    free:["AC群流脑 ①"],
+    paid:["ACYW135 四价流脑（升级替代）"],
+    note:"想扩保护面可自费换四价流脑（多覆盖 W135/Y 群）。" },
+  { age:"4岁", hot:false,
+    free:["脊灰加强（bOPV）"],
+    paid:["水痘 ②"],
+    note:"水痘第 2 剂最佳窗口，入园前后完成。" },
+  { age:"5岁", hot:false,
+    free:[],
+    paid:["国产 13 价补种（最后机会）"],
+    note:"未打 13 价且未满 6 周岁：2-5 岁补 1 剂即可，5 岁是最后时间窗。" },
+  { age:"6岁", hot:false,
+    free:["百白破 第5剂","AC群流脑 ②"], paid:[],
+    note:"2025 年起 6 周岁打百白破加强（非白破）；白破仅用于 7-11 岁漏种补种。" },
+];
+function renderTL(i){
+  const t = timeline[i];
+  document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('on', j===i));
+  document.getElementById('tlBody').innerHTML = `
+    <h4 class="tl-free-t">🆓 国家免费（免疫规划）</h4>
+    <div>${ t.free.length ? t.free.map(v=>`<span class="tl-chip chip-free">${v}</span>`).join('') : '<span class="tl-none">本月无免费针</span>' }</div>
+    <h4 class="tl-paid-t">💰 建议自费</h4>
+    <div>${ t.paid.length ? t.paid.map(v=>`<span class="tl-chip chip-paid">${v}</span>`).join('') : '<span class="tl-none">本月无推荐自费针</span>' }</div>
+    <div class="tl-note">📌 ${t.note}</div>`;
+}
+document.getElementById('tlTabs').innerHTML = timeline.map((t,i)=>
+  `<button class="tab-btn" onclick="renderTL(${i})">${t.age}${t.hot?'<span class="dot"></span>':''}</button>`).join('');
+renderTL(2); // 默认选中 2 月龄（信息量最大的抢时间节点）
 
 // ===== 雷达图 =====
 const dims = ["保护广度","重症防护","接种便利","性价比","时间弹性","口碑成熟度"];
