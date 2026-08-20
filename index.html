@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>葵爸的新生儿疫苗方案大横评</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:#f5f7fa; color:#222; line-height:1.6; }
+  .wrap { max-width:960px; margin:0 auto; padding:24px 16px 60px; }
+  header { text-align:center; padding:32px 0 12px; }
+  header h1 { font-size:28px; font-weight:800; letter-spacing:1px; }
+  header .sub { color:#888; margin-top:6px; font-size:14px; }
+  .section { background:#fff; border-radius:14px; padding:22px; margin:18px 0; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+  .section h2 { font-size:20px; border-left:4px solid #1E5AA8; padding-left:10px; margin-bottom:6px; }
+  .section-desc { color:#666; font-size:14px; margin-bottom:14px; }
+  .chart-s { font-size:14px; color:#555; background:#f0f4fa; border-radius:10px; padding:12px 14px; margin-top:12px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+  .card { border:1px solid #eee; border-radius:12px; padding:14px; }
+  .card h3 { font-size:16px; margin-bottom:6px; }
+  .card .price { font-size:22px; font-weight:800; color:#C0392B; }
+  .card .unit { color:#888; font-size:13px; margin-top:2px; }
+  .card ul { list-style:none; margin-top:8px; font-size:13px; }
+  .card li { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dashed #f0f0f0; }
+  .card .yes { color:#2E7D32; } .card .no { color:#C0392B; }
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+  .tag-a { background:#e8f0fb; color:#1E5AA8; }
+  .tag-b { background:#e6f7ee; color:#1E7A46; }
+  .tag-c { background:#fdf3e7; color:#B26A00; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:8px; }
+  th,td { border:1px solid #e8e8e8; padding:9px 10px; text-align:center; }
+  th { background:#1E5AA8; color:#fff; font-weight:600; }
+  tr:nth-child(even) td { background:#fafcff; }
+  td.hl { background:#fff4e6 !important; font-weight:700; }
+  td.dim { text-align:left; }
+  .star { color:#E6A23C; letter-spacing:1px; }
+  .disclaimer { font-size:12px; color:#999; margin-top:18px; padding:14px; background:#f7f7f7; border-radius:10px; }
+  .radar-box { width:100%; height:420px; }
+  .bar-box { width:100%; height:340px; }
+  .callout { font-size:13px; background:#fff8ef; border:1px solid #f5e2c3; border-radius:10px; padding:12px 14px; margin-top:14px; }
+  .warn { background:#fdf3e7; border-color:#f0d5a8; }
+  .info-note { font-size:12px; color:#999; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>葵爸的新生儿疫苗方案大横评</h1>
+    <div class="sub">免费 vs 自费，三套方案到底怎么选 · 费用按 2026 年市场参考价估算 · 免疫程序按国家 2025 版</div>
+  </header>
+
+  <!-- 概览卡片 -->
+  <div class="section">
+    <h2>三套接种方案对比</h2>
+    <p class="section-desc">国家免费疫苗（免疫规划）覆盖 11 种传染病、共 22 剂次，这是底线；自费疫苗补的是「高发病、重症率高」的缺口。三套方案按预算和需求分级，0-6 岁全程费用（参考价）。</p>
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <!-- 雷达图 -->
+  <div class="section">
+    <h2>六维能力雷达（作者主观模型）</h2>
+    <p class="section-desc">维度：保护广度 / 重症防护 / 接种便利 / 性价比 / 时间弹性 / 口碑成熟度。分值为作者依据公开数据的主观加权，仅供横向参考，非第三方检测。</p>
+    <div id="radar" class="radar-box"></div>
+  </div>
+
+  <!-- 柱状图：费用+剂次 -->
+  <div class="section">
+    <h2>总费用 & 总剂次对比（0-6 岁）</h2>
+    <div id="bar" class="bar-box"></div>
+    <div class="chart-s">
+      <b>划重点：</b>方案B（核心自费）约 ¥5,000 就能补上最要命的 4 个缺口——肺炎球菌、轮状病毒、手足口重症、流感，是性价比最高的「+1 档」。方案C 多花的钱主要花在「五联替代（少挨 8 针）」和「流脑升级」上，买的是体验和覆盖广度，不是必须。方案A 免费到底，但肺炎/轮状这两类重症高发病完全裸奔，葵爸不推荐。
+    </div>
+  </div>
+
+  <!-- 自费疫苗明细表 -->
+  <div class="section">
+    <h2>自费疫苗明细（参考价）</h2>
+    <p class="section-desc">价格为全国市场参考价（社区/疾控接种门诊，2026-08 采集），各地有浮动；进口/国产价差较大，以当地接种门诊公示为准。★ = 葵爸推荐优先级（5 星最值得）。</p>
+    <table id="detail"></table>
+    <div class="callout warn">
+      <b>⚠️ 两个「错过就补不了」的窗口期：</b><br>
+      ① <b>五价轮状：首剂必须在 6-12 周龄，全程 3 剂必须在 32 周龄前完成</b>——超龄直接放弃，没有任何补救；<br>
+      ② <b>13 价肺炎：首剂不能晚于 5-6 月龄</b>，超龄改打 23 价肺炎多糖疫苗（2 岁以上，保护力弱于 13 价结合苗）。<br>
+      所以这两针是新生儿期最该「抢时间」的自费苗，出生后第一次去接种门诊就要问。
+    </div>
+  </div>
+
+  <!-- 选购建议（必填） -->
+  <div class="section">
+    <h2>选购建议：按你家的情况对号入座</h2>
+    <p class="section-desc">没有「唯一正确方案」，只有「适合你家预算和节奏的方案」。费用为 0-6 岁全程参考价。</p>
+    <table>
+      <tr><th>你的情况</th><th>优先方案</th><th>为什么</th><th>注意</th></tr>
+      <tr><td class="dim">预算有限，但想花小钱补大缺口</td><td><b>方案B</b>（≈¥5,000）</td><td>13价肺炎+轮状+手足口+流感，正是免费清单外的 4 大重症缺口，性价比最高</td><td>轮状首剂别拖过 12 周龄；肺炎首剂别拖过 5-6 月龄</td></tr>
+      <tr><td class="dim">预算充足、怕宝宝挨针、想少跑几趟</td><td><b>方案C</b>（≈¥8,700）</td><td>五联一针顶三针，少挨 8 针；流脑升级到 ACYW135 覆盖更广</td><td>五联只含 4 剂百白破，6 岁那剂仍需单独补打；费用贵约 ¥3,700</td></tr>
+      <tr><td class="dim">坚决只打免费 / 特殊情况（禁忌症）</td><td><b>方案A</b>（¥0）</td><td>国家保底，22 剂覆盖 11 种传染病，入园入学必需</td><td>肺炎、轮状、手足口、流感无保护，注意手卫生和避免聚集</td></tr>
+      <tr><td class="dim">宝宝已入园 / 集体生活</td><td>方案B + 水痘</td><td>手足口、水痘在托幼机构传染极快，重症风险高</td><td>水痘部分地区免费（如上海、江苏），先问当地政策</td></tr>
+      <tr><td class="dim">女宝，满 13 周岁</td><td>免费二价 HPV（2025.11 起纳入免疫规划）</td><td>国家免费，防宫颈癌性价比天花板</td><td>想扩面可自费换九价（9-45 岁），费用约 ¥4,000/全程</td></tr>
+    </table>
+    <div class="callout warn">
+      <b>📌 下单前最后 3 句大实话：</b>① 所有自费疫苗都不进医保、不走统筹报销，但可刷医保个人账户余额（各地政策不同，先问接种点）；② 接种前如实告知宝宝健康史，发热/急性病暂缓；③ 打完留观 30 分钟再走，发热 38.5℃ 以下 1-2 天正常，持续高热及时就医。
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    免责声明：本测评基于国家卫健委/中国疾控中心 2025 版免疫规划程序及公开价格信息整理，费用为市场参考价（2026-08 采集），各地、各品牌差异较大，仅供参考，不构成医疗建议。接种前请以当地疾控/接种门诊最新安排和疫苗说明书为准。「五联少挨 8 针」等为疫苗替代关系测算，非品牌官方承诺。
+  </div>
+</div>
+
+<script>
+// ===== 配置区 =====
+const plans = [
+  { name:"方案A 纯免费", tag:"国家保底", cls:"tag-a", price:0, doses:22, spec:"22 剂 · 0-6 岁",
+    metrics:{ "保护广度":2,"重症防护":1,"接种便利":4,"性价比":5,"时间弹性":2,"口碑成熟度":5 },
+    rows:{ "覆盖疾病":"11 种（乙肝/结核/脊灰/百日咳/白喉/破伤风/麻腮风/乙脑/流脑/甲肝）","肺炎球菌":"无","轮状病毒":"无","手足口":"无","流感":"无" } },
+  { name:"方案B 核心自费", tag:"性价比之选", cls:"tag-b", price:5000, doses:35, spec:"约 35 剂 · 含 13 剂自费",
+    metrics:{ "保护广度":4,"重症防护":4,"接种便利":3,"性价比":4,"时间弹性":3,"口碑成熟度":4 },
+    rows:{ "覆盖疾病":"15 种（免费 11 种 + 肺炎球菌/轮状/手足口/流感）","肺炎球菌":"13价肺炎 ×4","轮状病毒":"五价轮状 ×3","手足口":"EV71 疫苗 ×2","流感":"每年 1 剂" } },
+  { name:"方案C 全套升级", tag:"少挨针", cls:"tag-c", price:8700, doses:27, spec:"约 27 剂 · 五联替代省 8 针",
+    metrics:{ "保护广度":5,"重症防护":5,"接种便利":5,"性价比":2,"时间弹性":4,"口碑成熟度":4 },
+    rows:{ "覆盖疾病":"17 种（+Hib/流脑升级至四价）","肺炎球菌":"13价肺炎 ×4","轮状病毒":"五价轮状 ×3","手足口":"EV71 疫苗 ×2","流感":"每年 1 剂 + 水痘/流脑升级" } },
+];
+
+// ===== 概览卡片 =====
+document.getElementById('cards').innerHTML = plans.map(p=>`
+  <div class="card">
+    <h3>${p.name}<span class="tag ${p.cls}">${p.tag}</span></h3>
+    <div class="price">¥${p.price.toLocaleString()}</div>
+    <div class="unit">${p.spec}</div>
+    <ul>${Object.entries(p.rows).slice(0,3).map(([k,v])=>`<li><span>${k}</span><b>${v}</b></li>`).join('')}</ul>
+  </div>`).join('');
+
+// ===== 雷达图 =====
+const dims = ["保护广度","重症防护","接种便利","性价比","时间弹性","口碑成熟度"];
+const radar = echarts.init(document.getElementById('radar'));
+radar.setOption({
+  tooltip:{},
+  legend:{ data: plans.map(p=>p.name), bottom:0 },
+  radar:{ indicator: dims.map(d=>({name:d,max:5})), radius:'62%' },
+  series:[{ type:'radar', data: plans.map((p,i)=>({
+    name:p.name, value:dims.map(d=>p.metrics[d]),
+    areaStyle:{opacity:.12}, lineStyle:{width:2}
+  })) }]
+});
+
+// ===== 柱状图：费用+剂次双轴 =====
+const bar = echarts.init(document.getElementById('bar'));
+bar.setOption({
+  tooltip:{ trigger:'axis' },
+  legend:{ data:['总费用(元)','总剂次'], bottom:0 },
+  grid:{ left:60, right:60, top:30, bottom:60 },
+  xAxis:{ type:'category', data: plans.map(p=>p.name) },
+  yAxis:[
+    { type:'value', name:'元' },
+    { type:'value', name:'剂次', min:0, max:40 }
+  ],
+  series:[
+    { name:'总费用(元)', type:'bar', data: plans.map(p=>p.price), itemStyle:{ color:'#C0392B' }, barWidth:'28%', label:{ show:true, position:'top', formatter:p=>'¥'+(p.value/1000)+'k' } },
+    { name:'总剂次', type:'bar', data: plans.map(p=>p.doses), yAxisIndex:1, itemStyle:{ color:'#1E5AA8' }, barWidth:'28%', label:{ show:true, position:'top' } }
+  ]
+});
+
+// ===== 自费疫苗明细表 =====
+const detailRows = [
+  ["13价肺炎结合疫苗","肺炎球菌（肺炎/脑膜炎/败血症）","4 剂","700-750","约 ¥2,900","5","★★★★★","首剂 ≤5-6 月龄"],
+  ["五价轮状病毒疫苗（口服）","轮状病毒腹泻（重症脱水）","3 剂","300","约 ¥900","5","★★★★★","首剂 6-12 周龄，32 周龄前完成"],
+  ["五联疫苗（百白破+脊灰+Hib）","白喉/百日咳/破伤风/脊灰/Hib","4 剂","600-700","约 ¥2,600","4","★★★★","替代免费针，少挨 8 针；6 岁百白破仍需补"],
+  ["手足口 EV71 疫苗","手足口重症（脑炎等）","2 剂","190-200","约 ¥400","4","★★★★","6 月龄起，入园前完成"],
+  ["水痘疫苗","水痘及并发症","2 剂","160-230","约 ¥400","4","★★★★","12 月龄+4 岁；部分地区免费"],
+  ["流感疫苗（儿童剂型）","季节性流感","每年 1-2 剂","130-160","约 ¥800/全程","4","★★★★","6 月龄起，每年秋冬接种"],
+  ["Hib 疫苗（单独）","b 型流感嗜血杆菌（脑膜炎/肺炎）","3-4 剂","100-120","约 ¥450","3","★★★","不打五联/四联时才需单独打"],
+  ["ACYW135 四价流脑","流脑 A/C/W135/Y 群","2 剂","300-400","约 ¥800","3","★★★","替代免费 AC 群，覆盖更广"],
+  ["23价肺炎多糖疫苗","肺炎球菌（2 岁以上）","1-2 剂","200","约 ¥400","2","★★","错过 13 价窗口期/体弱儿童备选"],
+];
+document.getElementById('detail').innerHTML =
+  `<tr><th>疫苗</th><th>预防疾病</th><th>剂次</th><th>单剂参考价(元)</th><th>全程参考价</th><th>推荐指数</th><th>优先级</th><th>关键窗口期</th></tr>` +
+  detailRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td class="hl">${r[4]}</td><td>${r[5]}</td><td class="star">${r[6]}</td><td>${r[7]}</td></tr>`).join('');
+
+window.addEventListener('resize',()=>{ radar.resize(); bar.resize(); });
+</script>
+</body>
+</html>
