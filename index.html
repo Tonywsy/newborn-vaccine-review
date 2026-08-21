@@ -52,6 +52,28 @@
   .chip-free { background:#ddeafa; color:#154a8f; } .chip-paid { background:#fdeed4; color:#8f5600; }
   .tl-none { font-size:13px; color:#666; }
   .tl-note { font-size:13px; color:#222; background:#eef4fc; border-radius:8px; padding:9px 12px; margin-top:12px; }
+  /* 生成器 */
+  .gen-box { display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:#eef4fc; border-radius:10px; padding:14px; margin-bottom:6px; }
+  .gen-box label { font-size:14px; }
+  .gen-box input[type=date], .gen-box input[type=number] { padding:7px 10px; border:1px solid #b8bfc9; border-radius:8px; font-size:14px; font-family:inherit; }
+  .gen-box button { padding:8px 18px; background:#154a8f; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
+  .gen-box button:hover { background:#0f3a73; }
+  .gen-now { background:#ddeafa; border:1px solid #154a8f; border-radius:12px; padding:16px; margin-bottom:6px; }
+  .gen-now h3 { color:#154a8f; font-size:17px; margin-bottom:8px; }
+  .gen-alert { background:#fdeed4; border:1px solid #e8c27a; border-radius:10px; padding:12px 14px; margin-top:12px; font-size:14px; color:#6b5200; line-height:1.7; }
+  .gen-card { border:1px solid #d9dde3; border-radius:12px; padding:14px; margin-top:12px; }
+  .gen-card.cur { border-color:#154a8f; box-shadow:0 0 0 2px rgba(21,74,143,.15); }
+  .gen-card.past { opacity:.6; }
+  .gen-card .st { font-size:12px; font-weight:700; padding:2px 9px; border-radius:10px; margin-left:8px; }
+  .st-cur { background:#154a8f; color:#fff; } .st-past { background:#ccd2da; color:#333; } .st-fut { background:#ddf3e6; color:#15653a; }
+  .series-bar { background:linear-gradient(135deg,#eef4fc,#f7fafe); border:1px solid #d4e2f4; }
+  .series-cards { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; }
+  .series-card { flex:1 1 220px; display:flex; flex-direction:column; gap:5px; background:#fff; border:1px solid #d4e2f4; border-radius:12px; padding:16px 18px; text-decoration:none; color:#154a8f; box-shadow:0 2px 8px rgba(21,74,143,.06); transition:transform .15s, box-shadow .15s; }
+  .series-card:hover { transform:translateY(-3px); box-shadow:0 6px 16px rgba(21,74,143,.14); }
+  .series-card .sc-emoji { font-size:26px; line-height:1; }
+  .series-card b { font-size:16px; color:#154a8f; }
+  .series-card .sc-sub { font-size:13px; color:#555; }
+  .series-note { margin-top:12px; font-size:13px; color:#8f5600; font-weight:600; }
 </style>
 </head>
 <body>
@@ -71,9 +93,40 @@
   <!-- 按月龄查疫苗 -->
   <div class="section">
     <h2>按月龄查疫苗：这个月该打什么</h2>
-    <p class="section-desc">点月龄切换 · <span style="color:#154a8f;font-weight:600">蓝=国家免费（必打）</span> · <span style="color:#8f5600;font-weight:600">橙=建议自费</span> · 带红点的月份有「抢时间」的自费苗。免疫程序按国家 2026 年版，各地门诊安排可能微调。</p>
+    <p class="section-desc">点月龄切换 · <span style="color:#154a8f;font-weight:600">蓝=国家免费（一类苗）</span> · <span style="color:#8f5600;font-weight:600">橙=建议自费</span> · 带红点的月份有「抢时间」的自费苗。免疫程序按国家 2026 年版，各地门诊安排可能微调。</p>
+    <div class="gen-box">
+      <label style="font-weight:600">👶 宝宝出生日期：<input type="date" id="birthInput"></label>
+      <button onclick="locateByBirth()">定位到当前月</button>
+      <span class="info-note">或只填月龄：</span>
+      <input type="number" id="monthInput" min="0" max="72" placeholder="月龄" style="width:80px">
+      <button onclick="locateByMonth()" style="background:#8f5600">定位</button>
+    </div>
     <div class="tabs" id="tlTabs"></div>
     <div id="tlBody" class="tl-block"></div>
+    <div id="genAlert"></div>
+  </div>
+
+  <!-- 入托入学查验清单 -->
+  <div class="section">
+    <h2>入托入学查验清单：哪些要完成</h2>
+    <p class="section-desc">孩子上幼儿园、小学，接种门诊要查《预防接种证》是否完成<b>国家免疫规划（一类苗）</b>全程。下面 9 类是全国统一必查项，时间轴上都已排好，这里单独拎出来给你对着核。最终以当地疾控/接种门诊出具的「查验完成证明」为准。</p>
+    <table>
+      <tr><th>查验类别</th><th>疫苗</th><th>剂次</th><th>对应月龄（见上方时间轴）</th></tr>
+      <tr><td class="dim" rowspan="9">全国必查（一类苗）</td><td>乙肝疫苗</td><td>3 剂</td><td>出生 / 1月 / 6月</td></tr>
+      <tr><td>卡介苗</td><td>1 剂</td><td>出生 24h</td></tr>
+      <tr><td>脊灰疫苗</td><td>4 剂</td><td>2 / 3 / 4月 + 4岁</td></tr>
+      <tr><td>百白破（含 6 岁加强）</td><td>5 剂</td><td>2 / 4 / 6 / 18月 + 6岁</td></tr>
+      <tr><td>麻腮风</td><td>2 剂</td><td>8月 + 18月</td></tr>
+      <tr><td>A 群流脑</td><td>2 剂</td><td>6月 + 9月</td></tr>
+      <tr><td>AC 群流脑</td><td>2 剂</td><td>3岁 + 6岁</td></tr>
+      <tr><td>乙脑（减毒）</td><td>2 剂</td><td>8月 + 2岁</td></tr>
+      <tr><td>甲肝</td><td>1 剂</td><td>18月</td></tr>
+      <tr><td class="dim" style="background:#fdeed4">多地必查</td><td colspan="3" style="text-align:left">水痘——上海/江苏/广东等多地入园实际查验要求，部分省市已免费（上海 2024 起）；时间轴 12-15月 + 4岁</td></tr>
+      <tr><td class="dim" style="background:#eef4fc">部分地方建议</td><td colspan="3" style="text-align:left">EV71 手足口——少数地方入园建议，非强制；时间轴 6月 + 12-15月</td></tr>
+    </table>
+    <div class="callout">
+      <b>📌 查验要点：</b>① 一类苗要「全程」合格，缺任何一剂入园/入学前都需补种；② 水痘在多地是实际查验项，别等报名才发现没打；③ 接种证保管好，转学、异地入园都要用。
+    </div>
   </div>
 
   <!-- 雷达图 -->
@@ -88,7 +141,7 @@
     <h2>总费用 & 总剂次对比（0-6 岁）</h2>
     <div id="bar" class="bar-box"></div>
     <div class="chart-s">
-      <b>划重点：</b>方案B（核心自费）约 ¥5,000 就能补上最要命的 4 个缺口——肺炎球菌、轮状病毒、手足口重症、流感，是性价比最高的「+1 档」。方案C 多花的钱主要花在「五联替代（少挨 8 针）」和「流脑升级」上，买的是体验和覆盖广度，不是必须。方案A 免费到底，但肺炎/轮状这两类重症高发病完全裸奔，葵爸不推荐。<br>
+      <b>划重点：</b>方案B（核心自费）约 ¥5,000 就能补上最要命的 4 个缺口——肺炎球菌、轮状病毒、手足口重症、流感，是性价比最高的「+1 档」。方案C 多花的钱主要花在「五联替代（减少 6 次注射，前提打 Hib）」和「流脑升级」上，买的是体验和覆盖广度，不是必须。方案A 免费到底，但肺炎/轮状这两类重症高发病没有疫苗保护，葵爸不推荐。<br>
       <span style="color:#6b5200;font-weight:600">💰 预算敏感版：以上按进口苗参考价估算，若二类苗全选<b>国产</b>（国产 13 价约 468-620/剂），方案B 总花费可降到约 <b>¥3,500-4,200</b>，方案C 降至约 <b>¥7,000</b>——防护力不打折，省钱主要靠选国产。</span>
     </div>
   </div>
@@ -99,10 +152,10 @@
     <p class="section-desc">价格为全国市场参考价（社区/疾控接种门诊，2026-08 采集），各地有浮动；进口/国产价差较大，以当地接种门诊公示为准。★ = 葵爸推荐优先级（5 星最值得）。</p>
     <table id="detail"></table>
     <div class="callout warn">
-      <b>⚠️ 最该「抢时间」的自费苗（轮状错过就补不了）：</b><br>
-      ① <b>五价轮状：首剂必须在 6-12 周龄，全程 3 剂必须在 32 周龄前完成</b>——超龄直接放弃，没有任何补救；<br>
+      <b>⚠️ 最该「抢时间」的自费苗（五价轮状卡窗口，错过有补救）：</b><br>
+      ① <b>五价轮状（进口）：首剂须在 6-12 周龄、全程 3 剂须在 32 周龄前完成</b>——超龄无法再开五价，但别放弃，可转<b>国产单价轮状</b>（2 月龄-3 岁随时可开、每年 1 剂，3 岁前完成即可）；2023 年新上市的国产三价同样限 32 周龄前完成。<br>
       ② <b>13 价肺炎：进口苗（沛儿13）限 15 月龄内完成</b>；<b>国产 13 价已扩龄至 6 岁前可补种</b>（2-5 岁仅需 1 剂）——错过 6 月龄别焦虑，但越早接种保护建立越早。<br>
-      所以轮状是新生儿期最该「抢时间」的苗，出生后第一次去接种门诊就要先问它；13 价也别拖。<br>
+      所以五价轮状是新生儿期最该「抢时间」的苗，出生后第一次去接种门诊就要先问它；13 价也别拖。<br>
       <b>📦 缺货提醒：</b>五价轮状、五联等热门苗部分地区常断货，确认有货再安排，别等窗口期过了才想起预约。
     </div>
   </div>
@@ -113,19 +166,38 @@
     <p class="section-desc">没有「唯一正确方案」，只有「适合你家预算和节奏的方案」。费用为 0-6 岁全程参考价。</p>
     <table>
       <tr><th>你的情况</th><th>优先方案</th><th>为什么</th><th>注意</th></tr>
-      <tr><td class="dim">预算有限，但想花小钱补大缺口</td><td><b>方案B</b>（≈¥5,000）</td><td>13价肺炎+轮状+手足口+流感，正是免费清单外的 4 大重症缺口，性价比最高</td><td>轮状首剂别拖过 12 周龄；进口 13 价别拖过 15 月龄（国产 6 岁前可补）</td></tr>
-      <tr><td class="dim">预算充足、怕宝宝挨针、想少跑几趟</td><td><b>方案C</b>（≈¥8,700）</td><td>五联一针顶三针，少挨 8 针；流脑升级到 ACYW135 覆盖更广</td><td>五联只含 4 剂百白破，6 周岁第 5 剂仍需单独补打；费用贵约 ¥3,700</td></tr>
+      <tr><td class="dim">预算有限，但想花小钱补大缺口</td><td><b>方案B</b>（≈¥5,000）</td><td>13价肺炎+轮状+手足口+流感，正是免费清单外的 4 大重症缺口，性价比最高</td><td>五价轮状首剂别拖过 12 周龄（错过可转国产单价）；进口 13 价别拖过 15 月龄（国产 6 岁前可补）</td></tr>
+      <tr><td class="dim">预算充足、怕宝宝挨针、想少跑几趟</td><td><b>方案C</b>（≈¥8,700）</td><td>五联一针顶三针，减少 6 次注射（前提打 Hib）；流脑升级到 ACYW135 覆盖更广</td><td>五联只含 4 剂百白破，6 周岁第 5 剂仍需单独补打；费用贵约 ¥3,700</td></tr>
       <tr><td class="dim">坚决只打免费 / 特殊情况（禁忌症）</td><td><b>方案A</b>（¥0）</td><td>国家保底，22 剂覆盖 11 种传染病，入园入学必需</td><td>肺炎、轮状、手足口、流感无保护，注意手卫生和避免聚集</td></tr>
-      <tr><td class="dim">宝宝已入园 / 集体生活</td><td>方案B + 水痘</td><td>手足口、水痘在托幼机构传染极快，重症风险高</td><td>水痘部分地区免费（如上海、江苏），先问当地政策</td></tr>
-      <tr><td class="dim">女宝，满 13 周岁</td><td>免费二价 HPV（2025.11 起纳入免疫规划）</td><td>国家免费，防宫颈癌性价比天花板</td><td>想扩面可自费换九价（9-45 岁），费用约 ¥4,000/全程</td></tr>
+      <tr><td class="dim">宝宝已入园 / 集体生活</td><td>方案B + 水痘</td><td>手足口、水痘在托幼机构传播快、易扩散，重症风险值得重视</td><td>水痘部分地区免费（如上海、江苏），先问当地政策</td></tr>
+      <tr><td class="dim">女宝，满 13 周岁</td><td>免费二价 HPV（2025.11 起纳入免疫规划）</td><td>国家免费，防宫颈癌性价比很高</td><td>想扩面可自费换九价（9-45 岁），费用约 ¥4,000/全程</td></tr>
     </table>
     <div class="callout warn">
-      <b>📌 下单前最后 3 句大实话：</b>① 所有自费疫苗都不进医保、不走统筹报销，但可刷医保个人账户余额（各地政策不同，先问接种点）；② 接种前如实告知宝宝健康史，发热/急性病暂缓；③ 打完留观 30 分钟再走，发热 38.5℃ 以下 1-2 天正常，持续高热及时就医。
+      <b>📌 下单前最后 3 句大实话：</b>① 所有自费疫苗都不进医保、不走统筹报销，但可刷医保个人账户余额（各地政策不同，先问接种点）；② 接种前如实告知宝宝健康史，发热/急性病暂缓；③ 打完留观 30 分钟再走；部分宝宝接种后可能出现一过性低热（多 &lt;38.5℃、1-2 天内自行缓解），持续高热请及时就医。
     </div>
   </div>
 
   <div class="disclaimer">
-    免责声明：本测评基于国家卫健委/中国疾控中心 2026 年版免疫规划程序（百白破 2 月龄起 5 剂次、双价 HPV 免费）及公开价格信息整理，费用为市场参考价（2026-08 采集），各地、各品牌差异较大，仅供参考，不构成医疗建议。早产儿、低体重儿、过敏体质、免疫缺陷等特殊健康状态儿童的接种程序需由医生个体化评估，切勿照搬本页时间表。接种前请以当地疾控/接种门诊最新安排和疫苗说明书为准。「五联少挨 8 针」等为疫苗替代关系测算，非品牌官方承诺。
+    免责声明：本测评基于国家卫健委/中国疾控中心 2026 年版免疫规划程序（百白破 2 月龄起 5 剂次、双价 HPV 免费）及公开价格信息整理，费用为市场参考价（2026-08 采集），各地、各品牌差异较大，仅供参考，不构成医疗建议。早产儿、低体重儿、过敏体质、免疫缺陷等特殊健康状态儿童的接种程序需由医生个体化评估，切勿照搬本页时间表。接种前请以当地疾控/接种门诊最新安排和疫苗说明书为准。「五联针数替代」等为疫苗替代关系测算，非品牌官方承诺。
+  </div>
+
+  <!-- 同系列引流 -->
+  <div class="section series-bar">
+    <h2>葵爸同系列测评</h2>
+    <p class="section-desc">疫苗只是宝宝健康的第一步，吃穿用才是长线——这些硬核横评也值得你收藏：</p>
+    <div class="series-cards">
+      <a class="series-card" href="https://tonywsy.github.io/baby-formula-comparison/">
+        <span class="sc-emoji">🍼</span>
+        <b>奶粉大横评</b>
+        <span class="sc-sub">1/2/3 段，谁在收智商税？</span>
+      </a>
+      <a class="series-card" href="https://tonywsy.github.io/diaper-review/">
+        <span class="sc-emoji">👶</span>
+        <b>纸尿裤 / 拉拉裤横评</b>
+        <span class="sc-sub">反渗·透气·性价比实测</span>
+      </a>
+    </div>
+    <p class="series-note">奶粉横评还有「国产1段 / 进口对比 / 国产对比」版本，想换主推款跟我说 → 关注葵爸主页看更多硬核测评</p>
   </div>
 </div>
 
@@ -138,7 +210,7 @@ const plans = [
   { name:"方案B 核心自费", tag:"性价比之选", cls:"tag-b", price:5000, doses:35, spec:"约 35 剂 · 含 13 剂自费",
     metrics:{ "保护广度":4,"重症防护":4,"接种便利":3,"性价比":4,"时间弹性":3,"口碑成熟度":4 },
     rows:{ "覆盖疾病":"15 种（免费 11 种 + 肺炎球菌/轮状/手足口/流感）","肺炎球菌":"13价肺炎 ×4","轮状病毒":"五价轮状 ×3","手足口":"EV71 疫苗 ×2","流感":"每年 1 剂" } },
-  { name:"方案C 全套升级", tag:"少挨针", cls:"tag-c", price:8700, doses:27, spec:"约 27 剂 · 五联替代省 8 针",
+  { name:"方案C 全套升级", tag:"少挨针", cls:"tag-c", price:8700, doses:27, spec:"约 27 剂 · 五联替代少 6 针",
     metrics:{ "保护广度":5,"重症防护":5,"接种便利":5,"性价比":2,"时间弹性":4,"口碑成熟度":4 },
     rows:{ "覆盖疾病":"17 种（+Hib/流脑升级至四价）","肺炎球菌":"13价肺炎 ×4","轮状病毒":"五价轮状 ×3","手足口":"EV71 疫苗 ×2","流感":"每年 1 剂 + 水痘/流脑升级" } },
 ];
@@ -154,58 +226,58 @@ document.getElementById('cards').innerHTML = plans.map(p=>`
 
 // ===== 按月龄查疫苗 tab =====
 const timeline = [
-  { age:"出生24h", hot:false,
+  { age:"出生24h", m:0, hot:false,
     free:["乙肝疫苗 ①","卡介苗"], paid:[],
     note:"出生 24 小时内接种。早产/低体重（<2.5kg）宝宝乙肝①仍按期打，卡介苗待体重达标后补种。" },
-  { age:"1月龄", hot:false,
+  { age:"1月龄", m:1, hot:false,
     free:["乙肝疫苗 ②"], paid:[],
     note:"可与满月体检同一天，少跑一趟。" },
-  { age:"2月龄", hot:true,
+  { age:"2月龄", m:2, hot:true,
     free:["脊灰 IPV ①","百白破 ①"],
-    paid:["五价轮状 首剂（口服）","13价肺炎 ①","五联 ①（替百白破+脊灰+Hib）"],
-    note:"⏰ 轮状首剂窗口 6-12 周龄、全程 3 剂 32 周龄前——出生后第一次去接种门诊就要问它，错过无法补种。选五联的宝宝本月起五联替代免费脊灰/百白破。" },
-  { age:"3月龄", hot:false,
+    paid:["五价轮状 首剂（进口·口服）","13价肺炎 ①","五联 ①（替百白破+脊灰+Hib）"],
+    note:"⏰ 卡时间的是进口五价/国产三价轮状：首剂 6-12（13）周龄开针、全程 3 剂须在 32 周龄前完成——出生后第一次去接种门诊就先问它；万一错过五价窗口也别放弃，可转国产单价轮状（2 月龄-3 岁随时可开，每年 1 剂）。选五联的宝宝本月起五联替代免费脊灰/百白破。" },
+  { age:"3月龄", m:3, hot:false,
     free:["脊灰 IPV ②"],
     paid:["五联 ②","五价轮状 ②（若已开针）"],
     note:"免费针本月只有一剂脊灰；打五联的宝宝本月五联②。" },
-  { age:"4月龄", hot:false,
+  { age:"4月龄", m:4, hot:false,
     free:["脊灰 bOPV ③（口服）","百白破 ②"],
     paid:["五联 ③","13价肺炎 ②","五价轮状 ③"],
-    note:"轮状全程须在 32 周龄（约 7 个半月）前完成，本月收尾。" },
-  { age:"6月龄", hot:false,
+    note:"选五价/三价轮状的宝宝：全程须在 32 周龄（约 7 个半月）前完成，本月收尾；当初选国产单价轮状的话，3 岁前每年 1 剂即可，不卡这个窗口。" },
+  { age:"6月龄", m:6, hot:false,
     free:["乙肝疫苗 ③","百白破 ③","A群流脑 ①"],
     paid:["13价肺炎 ③","流感疫苗 首季第 1 剂","手足口 EV71 ①"],
-    note:"满 6 月龄后的首个秋冬流感季即可打流感，首年 2 剂间隔 ≥4 周；EV71 两剂间隔 1 个月，入园前完成。" },
-  { age:"8月龄", hot:false,
+    note:"满 6 月龄后的首个秋冬流感季即可打流感，首年 2 剂间隔 ≥4 周；EV71 两剂间隔 1 个月，入园前完成（部分地方入园查验建议，非强制）。" },
+  { age:"8月龄", m:8, hot:false,
     free:["麻腮风 ①","乙脑减毒 ①"], paid:[],
     note:"两针可同天。麻腮风接种后 5-12 天可能出现一过性发热/稀疏皮疹，属正常疫苗反应，别慌。" },
-  { age:"9月龄", hot:false,
+  { age:"9月龄", m:9, hot:false,
     free:["A群流脑 ②"], paid:[],
     note:"与 A 群流脑 ① 至少间隔 3 个月。" },
-  { age:"12-15月龄", hot:true,
+  { age:"12-15月龄", m:12, hot:true,
     free:[],
     paid:["13价肺炎 加强剂（进口限 15 月龄内！）","水痘 ①","手足口 EV71 收尾"],
-    note:"进口沛儿13 全程须在 15 月龄内完成，本月是加强剂窗口；国产 13 价已扩龄至 6 岁前（2-5 岁仅 1 剂），错过不焦虑。" },
-  { age:"18月龄", hot:false,
+    note:"进口沛儿13 全程须在 15 月龄内完成，本月是加强剂窗口；国产 13 价已扩龄至 6 岁前（2-5 岁仅 1 剂），错过不焦虑。水痘多地入园入学实际查验要求，部分省市已免费（上海 2024 起），别漏。" },
+  { age:"18月龄", m:18, hot:false,
     free:["百白破 ④","麻腮风 ②","甲肝"],
     paid:["五联 ④（选五联方案者）"],
     note:"「针头密集月」：一次门诊可安排多针，提前和接种点约好时间。" },
-  { age:"2岁", hot:false,
+  { age:"2岁", m:24, hot:false,
     free:["乙脑减毒 ②"], paid:[],
     note:"乙脑第 2 剂，与 8 月龄首剂间隔 1 年以上。" },
-  { age:"3岁", hot:false,
+  { age:"3岁", m:36, hot:false,
     free:["AC群流脑 ①"],
     paid:["ACYW135 四价流脑（升级替代）"],
     note:"想扩保护面可自费换四价流脑（多覆盖 W135/Y 群）。" },
-  { age:"4岁", hot:false,
+  { age:"4岁", m:48, hot:false,
     free:["脊灰加强（bOPV）"],
     paid:["水痘 ②"],
-    note:"水痘第 2 剂最佳窗口，入园前后完成。" },
-  { age:"5岁", hot:false,
+    note:"水痘第 2 剂最佳窗口，多地入园入学查验要求完成（上海等已免费）。" },
+  { age:"5岁", m:60, hot:false,
     free:[],
     paid:["国产 13 价补种（最后机会）"],
-    note:"未打 13 价且未满 6 周岁：2-5 岁补 1 剂即可，5 岁是最后时间窗。" },
-  { age:"6岁", hot:false,
+    note:"未打 13 价且未满 6 周岁：2-5 岁补 1 剂即可，满 6 周岁前均可补种，越早安排越好。" },
+  { age:"6岁", m:72, hot:false,
     free:["百白破 第5剂","AC群流脑 ②"], paid:[],
     note:"2025 年起 6 周岁打百白破加强（非白破）；白破仅用于 7-11 岁漏种补种。" },
 ];
@@ -222,6 +294,40 @@ function renderTL(i){
 document.getElementById('tlTabs').innerHTML = timeline.map((t,i)=>
   `<button class="tab-btn" onclick="renderTL(${i})">${t.age}${t.hot?'<span class="dot"></span>':''}</button>`).join('');
 renderTL(2); // 默认选中 2 月龄（信息量最大的抢时间节点）
+
+// ===== 自动定位到宝宝当前月（去重：增值=定位+进度+抢时间提醒，不重复列清单）=====
+function monthDiff(birth){
+  const today = new Date();
+  let m = (today - birth) / (1000*60*60*24*30.4375);
+  return m < 0 ? 0 : m;
+}
+function locate(m){
+  let cur = 0;
+  timeline.forEach((t,i)=>{ if(m >= t.m) cur = i; });
+  if(m > 72) cur = timeline.length-1;
+  renderTL(cur); // 高亮当前月（tab 变蓝）
+  // 进度：已过的月灰显，未来月正常 —— tab 栏本身变成一张进度条
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{ b.classList.toggle('past', i < cur); });
+  const curAgeTxt = (m>=72) ? "已满 6 岁" : `约 ${Math.floor(m)} 月龄`;
+  let alerts = [];
+  if(m < 3) alerts.push("⏰ <b>进口五价/国产三价轮状：首剂 6-12（13）周龄开针（约 1.5-3 月龄）</b>，全程 3 剂须在 32 周龄（约 7.5 月龄）前完成——出生首次去接种门诊就先问它；错过五价窗口可转<b>国产单价轮状</b>（2 月龄-3 岁可开，每年 1 剂），别因错过就放弃。");
+  if(m >= 12 && m <= 15) alerts.push("🟠 <b>本月是进口沛儿13加强剂最后窗口（限 15 月龄内）</b>，别拖；国产 13 价已扩龄至 6 岁前可补。");
+  if(m > 15 && m < 72) alerts.push("🔵 如尚未接种 13 价肺炎：进口苗已超龄，可改<b>国产 13 价（6 岁前可补，2-5 岁仅 1 剂）</b>。");
+  if(m >= 6 && m < 9) alerts.push("🟢 <b>流感疫苗 6 月龄起</b>可打，每年秋冬接种（首年 2 剂间隔≥4 周）。");
+  document.getElementById('genAlert').innerHTML = alerts.length
+    ? `<div class="gen-alert"><b>📌 宝宝${curAgeTxt} · 抢时间提醒（如尚未接种）：</b><br>${alerts.join('<br>')}</div>`
+    : `<div class="gen-alert" style="background:#eef4fc;border-color:#b8bfc9;color:#3d3d3d">✅ 宝宝${curAgeTxt}，当前没有特别紧急的窗口期苗，按上方时间轴正常接种即可。</div>`;
+}
+function locateByBirth(){
+  const v = document.getElementById('birthInput').value;
+  if(!v){ alert('请先选择宝宝出生日期'); return; }
+  locate(monthDiff(new Date(v)));
+}
+function locateByMonth(){
+  const v = parseFloat(document.getElementById('monthInput').value);
+  if(isNaN(v)){ alert('请填写月龄（0-72）'); return; }
+  locate(v);
+}
 
 // ===== 雷达图 =====
 const dims = ["保护广度","重症防护","接种便利","性价比","时间弹性","口碑成熟度"];
@@ -258,10 +364,10 @@ bar.setOption({
 // ===== 自费疫苗明细表 =====
 const detailRows = [
   ["13价肺炎结合疫苗","肺炎球菌（肺炎/脑膜炎/败血症）","4 剂","700-750","约 ¥2,900","5","★★★★★","进口 ≤15 月龄；国产 6 岁前可补（2-5 岁仅 1 剂）"],
-  ["五价轮状病毒疫苗（口服）","轮状病毒腹泻（重症脱水）","3 剂","300","约 ¥900","5","★★★★★","首剂 6-12 周龄，32 周龄前完成"],
-  ["五联疫苗（百白破+脊灰+Hib）","白喉/百日咳/破伤风/脊灰/Hib","4 剂","600-700","约 ¥2,600","4","★★★★","替代免费针，少挨 8 针；6 周岁百白破第 5 剂不含在内"],
-  ["手足口 EV71 疫苗","手足口重症（脑炎等）","2 剂","190-200","约 ¥400","4","★★★★","6 月龄起，入园前完成"],
-  ["水痘疫苗","水痘及并发症","2 剂","160-230","约 ¥400","4","★★★★","12 月龄+4 岁；部分地区免费"],
+  ["五价轮状病毒疫苗（口服·进口）","轮状病毒腹泻（重症脱水）","3 剂","300","约 ¥900","5","★★★★★","首剂 6-12 周龄、32 周龄前完成；错过可转国产单价（2 月龄-3 岁）"],
+  ["五联疫苗（百白破+脊灰+Hib）","白喉/百日咳/破伤风/脊灰/Hib","4 剂","600-700","约 ¥2,600","4","★★★★","替代免费针，少 6 次注射（前提打 Hib）；6 周岁百白破第 5 剂不含在内"],
+  ["手足口 EV71 疫苗","手足口重症（脑炎等）","2 剂","190-200","约 ¥400","4","★★★★","6 月龄起，入园前完成；部分地方入园查验建议"],
+  ["水痘疫苗","水痘及并发症","2 剂","160-230","约 ¥400","4","★★★★","12 月龄+4 岁；多地入园入学查验要求，部分地区免费（上海 2024 起）"],
   ["流感疫苗（儿童剂型）","季节性流感","每年 1-2 剂","130-160","约 ¥800/全程（6 个流感季累计）","4","★★★★","6 月龄起，每年秋冬接种"],
   ["Hib 疫苗（单独）","b 型流感嗜血杆菌（脑膜炎/肺炎）","3-4 剂","100-120","约 ¥450","3","★★★","不打五联/四联时才需单独打"],
   ["ACYW135 四价流脑","流脑 A/C/W135/Y 群","2 剂","300-400","约 ¥800","3","★★★","替代免费 AC 群，覆盖更广"],
